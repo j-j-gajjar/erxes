@@ -20,6 +20,7 @@ import { IContext } from '../../types';
 interface ICountParams extends IListArgs {
   only: string;
   source: string;
+  segmentIds?: string[];
 }
 
 const countByIntegrationType = async (qb): Promise<ICountBy> => {
@@ -100,7 +101,7 @@ const customerQueries = {
     params: ICountParams,
     { commonQuerySelector, commonQuerySelectorElk }: IContext
   ) {
-    const { only, type, source } = params;
+    const { only, type, source, segmentIds } = params;
 
     const counts = {
       bySegment: {},
@@ -118,7 +119,12 @@ const customerQueries = {
 
     switch (only) {
       case 'bySegment':
-        counts.bySegment = await countBySegment(type || 'customer', qb, source);
+        counts.bySegment = await countBySegment(
+          type || 'customer',
+          qb,
+          source,
+          segmentIds
+        );
         break;
 
       case 'byBrand':

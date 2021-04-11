@@ -1,4 +1,5 @@
 import gql from 'graphql-tag';
+import client from 'apolloClient';
 import * as compose from 'lodash.flowright';
 import { withProps } from 'modules/common/utils';
 import { SegmentsQueryResponse } from 'modules/segments/types';
@@ -20,6 +21,12 @@ const SegmentStepContainer = (props: FinalProps) => {
   const { segmentsQuery, segmentIds } = props;
 
   const onChange = (ids: string[]) => {
+    client.query({
+      query: gql(queries.customerCounts),
+      fetchPolicy: 'network-only',
+      variables: { only: 'bySegment', segmentIds: ids }
+    });
+
     props.onChange('segmentIds', ids);
   };
 

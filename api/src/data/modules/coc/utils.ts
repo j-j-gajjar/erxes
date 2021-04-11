@@ -31,7 +31,8 @@ export const getEsTypes = (contentType: string) => {
 export const countBySegment = async (
   contentType: string,
   qb,
-  source?: string
+  source?: string,
+  segmentIds?: string[]
 ): Promise<ICountBy> => {
   const counts: ICountBy = {};
 
@@ -41,7 +42,7 @@ export const countBySegment = async (
   // show all contact related engages when engage
   if (source === 'engages') {
     segments = await Segments.find({
-      contentType: ['customer', 'lead', 'visitor']
+      _id: { $in: segmentIds || [] }
     });
   } else {
     segments = await Segments.find({ contentType });
@@ -184,6 +185,12 @@ export class CommonBuilder<IListArgs extends ICommonListArgs> {
     const { positiveList, negativeList } = await fetchBySegments(
       segment,
       'count'
+    );
+
+    console.log(
+      'mmmmmmmmmmm',
+      JSON.stringify(positiveList),
+      JSON.stringify(negativeList)
     );
 
     this.positiveList = [...this.positiveList, ...positiveList];
