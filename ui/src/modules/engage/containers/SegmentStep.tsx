@@ -17,11 +17,16 @@ type FinalProps = {
 } & Props;
 
 const SegmentStepContainer = (props: FinalProps) => {
-  const { segmentsQuery } = props;
+  const { segmentsQuery, segmentIds } = props;
+
+  const onChange = (ids: string[]) => {
+    props.onChange('segmentIds', ids);
+  };
 
   const updatedProps = {
-    ...props,
-    segments: segmentsQuery.segments || []
+    defaultValues: segmentIds,
+    segments: segmentsQuery.segments || [],
+    onChange
   };
 
   return <SegmentStep {...updatedProps} />;
