@@ -17,6 +17,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { IBreadCrumbItem, IConditionsRule } from '../../common/types';
 import { METHODS } from '../constants';
+import SegmentStep from '../containers/SegmentStep';
 import {
   IEngageEmail,
   IEngageMessage,
@@ -30,7 +31,6 @@ import SmsForm from './SmsForm';
 import ChannelStep from './step/ChannelStep';
 import FullPreviewStep from './step/FullPreviewStep';
 import MessageStep from './step/MessageStep';
-import MessageTypeStep from './step/MessageTypeStep';
 
 type Props = {
   message?: IEngageMessage;
@@ -56,7 +56,6 @@ type State = {
   title: string;
   segmentIds: string[];
   brandIds: string[];
-  tagIds: string[];
   content: string;
   fromUserId: string;
   messenger?: IEngageMessenger;
@@ -90,7 +89,6 @@ class AutoAndManualForm extends React.Component<Props, State> {
       title: message.title || '',
       segmentIds: message.segmentIds || [],
       brandIds: message.brandIds || [],
-      tagIds: message.customerTagIds || [],
       content,
       fromUserId: message.fromUserId,
       messenger: message.messenger,
@@ -102,7 +100,7 @@ class AutoAndManualForm extends React.Component<Props, State> {
     };
   }
 
-  changeState = <T extends keyof State>(key: T, value: State[T]) => {
+  changeState = (key, value) => {
     this.setState(({ [key]: value } as unknown) as Pick<State, keyof State>);
   };
 
@@ -110,7 +108,6 @@ class AutoAndManualForm extends React.Component<Props, State> {
     this.setState({
       segmentIds: [],
       brandIds: [],
-      tagIds: [],
       rules: []
     });
   };
@@ -118,7 +115,6 @@ class AutoAndManualForm extends React.Component<Props, State> {
   handleSubmit = (type: string): Promise<any> | void => {
     const doc = {
       segmentIds: this.state.segmentIds,
-      customerTagIds: this.state.tagIds,
       brandIds: this.state.brandIds,
       title: this.state.title,
       fromUserId: this.state.fromUserId,
@@ -349,7 +345,7 @@ class AutoAndManualForm extends React.Component<Props, State> {
   render() {
     const { renderTitle, breadcrumbs } = this.props;
 
-    const { segmentIds, brandIds, title, tagIds } = this.state;
+    const { segmentIds, title } = this.state;
 
     const onChange = e =>
       this.changeState('title', (e.target as HTMLInputElement).value);
@@ -379,13 +375,7 @@ class AutoAndManualForm extends React.Component<Props, State> {
             img="/images/icons/erxes-06.svg"
             title="Who is this campaign for?"
           >
-            <MessageTypeStep
-              onChange={this.changeState}
-              clearState={this.clearState}
-              segmentIds={segmentIds}
-              brandIds={brandIds}
-              tagIds={tagIds}
-            />
+            <SegmentStep onChange={this.changeState} segmentIds={segmentIds} />
           </Step>
 
           {this.renderRule()}

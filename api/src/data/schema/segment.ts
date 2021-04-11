@@ -27,10 +27,11 @@ export const types = `
     color: String
     conditions: JSON
 
-    getSubSegments: [Segment]
-
     boardId: String
     pipelineId: String
+
+    getSubSegments: [Segment]
+    count: Int
   }
 `;
 

@@ -203,6 +203,7 @@ const segmentFields = `
   subOf
   color
   conditions
+  count
 `;
 
 const segments = `
