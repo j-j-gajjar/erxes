@@ -16,6 +16,7 @@ type Props = {
   defaultValues: string[];
   onChange: (ids: string[]) => void;
   segments: ISegment[];
+  customersCount: number;
 };
 
 type State = {
@@ -55,7 +56,7 @@ class SegmentStep extends React.Component<Props, State> {
   };
 
   render() {
-    const { segments } = this.props;
+    const { segments, customersCount } = this.props;
     const { selectedIds } = this.state;
 
     const orderedSegments: ISegment[] = [];
@@ -102,7 +103,7 @@ class SegmentStep extends React.Component<Props, State> {
             <Icon icon="users" size={50} />
 
             <p>
-              {0} {__('customers')}
+              {customersCount} {__('customers')}
             </p>
           </CustomerCounts>
         </FlexItem>

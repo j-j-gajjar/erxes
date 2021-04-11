@@ -17,27 +17,51 @@ type FinalProps = {
   segmentsQuery: SegmentsQueryResponse;
 } & Props;
 
-const SegmentStepContainer = (props: FinalProps) => {
-  const { segmentsQuery, segmentIds } = props;
-
-  const onChange = (ids: string[]) => {
-    client.query({
-      query: gql(queries.customerCounts),
-      fetchPolicy: 'network-only',
-      variables: { only: 'bySegment', source: 'engages', segmentIds: ids }
-    });
-
-    props.onChange('segmentIds', ids);
-  };
-
-  const updatedProps = {
-    defaultValues: segmentIds,
-    segments: segmentsQuery.segments || [],
-    onChange
-  };
-
-  return <SegmentStep {...updatedProps} />;
+type State = {
+  customersCount: number;
 };
+
+class SegmentStepContainer extends React.Component<FinalProps, State> {
+  constructor(props) {
+    super(props);
+
+    this.state = { customersCount: 0 };
+  }
+
+  render() {
+    const { segmentsQuery, segmentIds } = this.props;
+
+    const onChange = (ids: string[]) => {
+      client
+        .query({
+          query: gql(queries.customerCounts),
+          fetchPolicy: 'network-only',
+          variables: { only: 'bySegment', source: 'engages', segmentIds: ids }
+        })
+        .then(({ data: { customerCounts } }) => {
+          let totalCount = 0;
+          const values: number[] = Object.values(customerCounts.bySegment);
+
+          for (const count of values) {
+            totalCount += count;
+          }
+
+          this.setState({ customersCount: totalCount });
+        });
+
+      this.props.onChange('segmentIds', ids);
+    };
+
+    const updatedProps = {
+      defaultValues: segmentIds,
+      segments: segmentsQuery.segments || [],
+      customersCount: this.state.customersCount,
+      onChange
+    };
+
+    return <SegmentStep {...updatedProps} />;
+  }
+}
 
 export default withProps<Props>(
   compose(

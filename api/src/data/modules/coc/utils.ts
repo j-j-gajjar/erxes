@@ -187,10 +187,12 @@ export class CommonBuilder<IListArgs extends ICommonListArgs> {
       'count'
     );
 
-    if (['deal', 'ticket', 'task'].includes(segment.contentType)) {
+    if (['company', 'deal', 'ticket', 'task'].includes(segment.contentType)) {
       const response = await fetchElk(
         'search',
-        `${segment.contentType}s`,
+        segment.contentType === 'company'
+          ? 'companies'
+          : `${segment.contentType}s`,
         {
           query: {
             bool: {
@@ -207,10 +209,16 @@ export class CommonBuilder<IListArgs extends ICommonListArgs> {
       const items = response.hits.hits;
       const itemIds = items.map(i => i._id);
 
-      await Conformities.filterConformity({
+      const customerIds = await Conformities.filterConformity({
         mainType: segment.contentType,
         mainTypeIds: itemIds,
         relType: 'customer'
+      });
+
+      return this.positiveList.push({
+        terms: {
+          _id: customerIds
+        }
       });
     }
 
