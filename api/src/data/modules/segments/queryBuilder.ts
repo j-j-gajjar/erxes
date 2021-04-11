@@ -1,5 +1,11 @@
 import * as _ from 'underscore';
-import { Boards, Pipelines, Segments, Stages } from '../../../db/models';
+import {
+  Boards,
+  Conformities,
+  Pipelines,
+  Segments,
+  Stages
+} from '../../../db/models';
 import {
   SEGMENT_DATE_OPERATORS,
   SEGMENT_NUMBER_OPERATORS
@@ -22,8 +28,8 @@ export const fetchBySegments = async (
   const index = getIndexByContentType(contentType);
   const typesMap = getEsTypes(contentType);
 
-  const propertyPositive: any[] = [];
-  const propertyNegative: any[] = [];
+  let propertyPositive: any[] = [];
+  let propertyNegative: any[] = [];
 
   if (['customer', 'lead', 'visitor'].includes(contentType)) {
     propertyNegative.push({
@@ -105,6 +111,47 @@ export const fetchBySegments = async (
         _id: idsByEvents
       }
     });
+  }
+
+  if (
+    ['company', 'deal', 'task', 'ticket'].includes(contentType) &&
+    options &&
+    options.associatedCustomers
+  ) {
+    const associatedCustomers = await fetchElk(
+      'search',
+      getIndexByContentType(segment.contentType),
+      {
+        query: {
+          bool: {
+            must: propertyNegative,
+            must_not: propertyNegative
+          }
+        },
+        _source: '_id'
+      },
+      '',
+      { hits: { hits: [] } }
+    );
+
+    const items = associatedCustomers.hits.hits;
+    const itemIds = items.map(i => i._id);
+
+    const customerIds = await Conformities.filterConformity({
+      mainType: segment.contentType,
+      mainTypeIds: itemIds,
+      relType: 'customer'
+    });
+
+    propertyPositive = [
+      {
+        terms: {
+          _id: customerIds
+        }
+      }
+    ];
+
+    propertyNegative = [];
   }
 
   if (action === 'count') {
