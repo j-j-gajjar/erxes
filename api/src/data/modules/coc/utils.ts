@@ -187,11 +187,32 @@ export class CommonBuilder<IListArgs extends ICommonListArgs> {
       'count'
     );
 
-    console.log(
-      'mmmmmmmmmmm',
-      JSON.stringify(positiveList),
-      JSON.stringify(negativeList)
-    );
+    if (['deal', 'ticket', 'task'].includes(segment.contentType)) {
+      const response = await fetchElk(
+        'search',
+        `${segment.contentType}s`,
+        {
+          query: {
+            bool: {
+              must: positiveList,
+              must_not: negativeList
+            }
+          },
+          _source: '_id'
+        },
+        '',
+        { hits: { hits: [] } }
+      );
+
+      const items = response.hits.hits;
+      const itemIds = items.map(i => i._id);
+
+      await Conformities.filterConformity({
+        mainType: segment.contentType,
+        mainTypeIds: itemIds,
+        relType: 'customer'
+      });
+    }
 
     this.positiveList = [...this.positiveList, ...positiveList];
     this.negativeList = [...this.negativeList, ...negativeList];

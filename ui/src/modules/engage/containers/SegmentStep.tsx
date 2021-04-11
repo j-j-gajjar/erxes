@@ -24,7 +24,7 @@ const SegmentStepContainer = (props: FinalProps) => {
     client.query({
       query: gql(queries.customerCounts),
       fetchPolicy: 'network-only',
-      variables: { only: 'bySegment', segmentIds: ids }
+      variables: { only: 'bySegment', source: 'engages', segmentIds: ids }
     });
 
     props.onChange('segmentIds', ids);
