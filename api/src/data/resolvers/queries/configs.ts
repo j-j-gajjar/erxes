@@ -80,8 +80,6 @@ const configQueries = {
       releaseInfo: {}
     };
 
-    return result;
-
     const erxesDomain = getEnv({ name: 'MAIN_APP_DOMAIN' });
 
     const erxesVersion = await sendRequest({
