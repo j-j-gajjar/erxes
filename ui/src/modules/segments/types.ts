@@ -46,7 +46,6 @@ export interface ISegment extends ISegmentDoc {
   contentType: string;
   getSubSegments: ISegment[];
   getParentSegment: ISegment;
-  count?: number;
 }
 
 // query types

@@ -31,7 +31,6 @@ export const types = `
     pipelineId: String
 
     getSubSegments: [Segment]
-    count: Int
   }
 `;
 

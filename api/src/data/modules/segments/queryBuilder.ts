@@ -25,7 +25,7 @@ export const fetchBySegments = async (
 
   const { contentType } = segment;
 
-  const index = getIndexByContentType(contentType);
+  let index = getIndexByContentType(contentType);
   const typesMap = getEsTypes(contentType);
 
   let propertyPositive: any[] = [];
@@ -118,7 +118,9 @@ export const fetchBySegments = async (
     options &&
     options.associatedCustomers
   ) {
-    const associatedCustomers = await fetchElk(
+    index = 'customers';
+
+    const itemsResponse = await fetchElk(
       'search',
       getIndexByContentType(segment.contentType),
       {
@@ -128,13 +130,14 @@ export const fetchBySegments = async (
             must_not: propertyNegative
           }
         },
+        size: 10000,
         _source: '_id'
       },
       '',
       { hits: { hits: [] } }
     );
 
-    const items = associatedCustomers.hits.hits;
+    const items = itemsResponse.hits.hits;
     const itemIds = items.map(i => i._id);
 
     const customerIds = await Conformities.filterConformity({

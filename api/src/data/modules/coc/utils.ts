@@ -32,8 +32,7 @@ export const getEsTypes = (contentType: string) => {
 export const countBySegment = async (
   contentType: string,
   qb,
-  source?: string,
-  segmentIds?: string[]
+  source?: string
 ): Promise<ICountBy> => {
   const counts: ICountBy = {};
 
@@ -42,9 +41,7 @@ export const countBySegment = async (
 
   // show all contact related engages when engage
   if (source === 'engages') {
-    segments = await Segments.find({
-      _id: { $in: segmentIds || [] }
-    });
+    segments = await Segments.find({});
   } else {
     segments = await Segments.find({ contentType });
   }

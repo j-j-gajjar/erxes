@@ -1,67 +1,115 @@
 import gql from 'graphql-tag';
-import client from 'apolloClient';
 import * as compose from 'lodash.flowright';
+import ButtonMutate from 'modules/common/components/ButtonMutate';
+import { IButtonMutateProps } from 'modules/common/types';
 import { withProps } from 'modules/common/utils';
-import { SegmentsQueryResponse } from 'modules/segments/types';
+import { CountQueryResponse } from 'modules/customers/types';
+import { queries as formQueries } from 'modules/forms/graphql';
+import {
+  AddMutationResponse,
+  AddMutationVariables,
+  HeadSegmentsQueryResponse,
+  SegmentsQueryResponse
+} from 'modules/segments/types';
+import { FieldsCombinedByTypeQueryResponse } from 'modules/settings/properties/types';
 import React from 'react';
 import { graphql } from 'react-apollo';
 import SegmentStep from '../components/step/SegmentStep';
-import { queries } from '../graphql';
+import { mutations, queries } from '../graphql';
+import { sumCounts } from '../utils';
 
 type Props = {
   segmentIds: string[];
+  messageType: string;
   onChange: (name: string, value: string[]) => void;
+  renderContent: ({
+    actionSelector,
+    selectedComponent,
+    customerCounts
+  }: {
+    actionSelector: React.ReactNode;
+    selectedComponent: React.ReactNode;
+    customerCounts: React.ReactNode;
+  }) => React.ReactNode;
 };
 
 type FinalProps = {
   segmentsQuery: SegmentsQueryResponse;
-} & Props;
+  customerCountsQuery: CountQueryResponse;
+  headSegmentsQuery: HeadSegmentsQueryResponse;
+  combinedFieldsQuery: FieldsCombinedByTypeQueryResponse;
+} & AddMutationResponse &
+  Props;
 
-type State = {
-  customersCount: number;
-};
+const SegmentStepContainer = (props: FinalProps) => {
+  const {
+    segmentsQuery,
+    headSegmentsQuery,
+    customerCountsQuery,
+    combinedFieldsQuery
+  } = props;
 
-class SegmentStepContainer extends React.Component<FinalProps, State> {
-  constructor(props) {
-    super(props);
+  const customerCounts = customerCountsQuery.customerCounts || {
+    bySegment: {}
+  };
 
-    this.state = { customersCount: 0 };
-  }
+  const countValues = customerCounts.bySegment || {};
+  const customersCount = (ids: string[]) => sumCounts(ids, countValues);
 
-  render() {
-    const { segmentsQuery, segmentIds } = this.props;
-
-    const onChange = (ids: string[]) => {
-      client
-        .query({
-          query: gql(queries.customerCounts),
-          fetchPolicy: 'network-only',
-          variables: { only: 'bySegment', source: 'engages', segmentIds: ids }
+  const segmentFields = combinedFieldsQuery.fieldsCombinedByContentType
+    ? combinedFieldsQuery.fieldsCombinedByContentType.map(
+        ({ name, label }) => ({
+          _id: name,
+          title: label,
+          selectedBy: 'none'
         })
-        .then(({ data: { customerCounts } }) => {
-          let totalCount = 0;
-          const values: number[] = Object.values(customerCounts.bySegment);
+      )
+    : [];
 
-          for (const count of values) {
-            totalCount += count;
-          }
+  const count = () => {
+    customerCountsQuery.refetch();
+  };
 
-          this.setState({ customersCount: totalCount });
-        });
+  const renderButton = ({
+    values,
+    isSubmitted,
+    callback
+  }: IButtonMutateProps) => {
+    const callBackResponse = () => {
+      segmentsQuery.refetch();
+      customerCountsQuery.refetch();
 
-      this.props.onChange('segmentIds', ids);
+      if (callback) {
+        callback();
+      }
     };
 
-    const updatedProps = {
-      defaultValues: segmentIds,
-      segments: segmentsQuery.segments || [],
-      customersCount: this.state.customersCount,
-      onChange
-    };
+    return (
+      <ButtonMutate
+        mutation={mutations.segmentsAdd}
+        variables={values}
+        callback={callBackResponse}
+        isSubmitted={isSubmitted}
+        btnSize="small"
+        type="submit"
+        successMessage={`You successfully added a segment`}
+      />
+    );
+  };
 
-    return <SegmentStep {...updatedProps} />;
-  }
-}
+  const updatedProps = {
+    ...props,
+    headSegments: headSegmentsQuery.segmentsGetHeads || [],
+    segmentFields,
+    renderButton,
+    segments: segmentsQuery.segments || [],
+    targetCount: countValues,
+    customersCount,
+    count
+  };
+
+  return <SegmentStep {...updatedProps} />;
+};
 
 export default withProps<Props>(
   compose(
@@ -73,13 +121,43 @@ export default withProps<Props>(
             'lead',
             'customer',
             'visitor',
-            'company',
             'deal',
             'ticket',
             'task'
           ]
         }
       }
-    })
+    }),
+    graphql<Props, CountQueryResponse, { only: string; source: string }>(
+      gql(queries.customerCounts),
+      {
+        name: 'customerCountsQuery',
+        options: {
+          variables: {
+            only: 'bySegment',
+            source: 'engages'
+          },
+          fetchPolicy: 'network-only'
+        }
+      }
+    ),
+    graphql<Props, HeadSegmentsQueryResponse>(gql(queries.headSegments), {
+      name: 'headSegmentsQuery'
+    }),
+    graphql<Props, AddMutationResponse, AddMutationVariables>(
+      gql(mutations.segmentsAdd),
+      { name: 'segmentsAdd' }
+    ),
+    graphql<Props, FieldsCombinedByTypeQueryResponse>(
+      gql(formQueries.fieldsCombinedByContentType),
+      {
+        name: 'combinedFieldsQuery',
+        options: {
+          variables: {
+            contentType: 'customer'
+          }
+        }
+      }
+    )
   )(SegmentStepContainer)
 );

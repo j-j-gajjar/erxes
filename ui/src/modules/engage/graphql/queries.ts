@@ -182,7 +182,6 @@ const customerCounts = `
     $ids: [String],
     $source: String,
     $only: String
-    $segmentIds: [String]
   ) {
     customerCounts(
       page: $page,
@@ -193,7 +192,6 @@ const customerCounts = `
       ids: $ids,
       source: $source,
       only: $only
-      segmentIds: $segmentIds
     )
   }
 `;
@@ -205,7 +203,6 @@ const segmentFields = `
   subOf
   color
   conditions
-  count
 `;
 
 const segments = `

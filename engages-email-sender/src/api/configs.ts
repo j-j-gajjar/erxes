@@ -32,6 +32,8 @@ router.get(
   routeErrorHandling(async (req, res) => {
     debugRequest(debugEngages, req);
 
+    return res.json(['mrbatamar@gmail.com', 'amarzaya.m@nmma.co']);
+
     const emails = await awsRequests.getVerifiedEmails();
     return res.json(emails);
   })
