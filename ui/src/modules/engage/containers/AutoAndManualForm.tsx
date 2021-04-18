@@ -47,15 +47,6 @@ const AutoAndManualFormContainer = (props: FinalProps) => {
     integrationsQuery
   } = props;
 
-  if (
-    emailTemplatesQuery.loading ||
-    integrationConfigsQuery.loading ||
-    externalIntegrationsQuery.loading ||
-    integrationsQuery.loading
-  ) {
-    return null;
-  }
-
   const configs = integrationConfigsQuery.integrationsFetchApi || [];
   const externalIntegrations =
     externalIntegrationsQuery.integrationsFetchApi || [];
