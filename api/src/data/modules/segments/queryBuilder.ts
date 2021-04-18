@@ -91,16 +91,22 @@ export const fetchBySegments = async (
   if (eventPositive.length > 0 || eventNegative.length > 0) {
     const idField = contentType === 'company' ? 'companyId' : 'customerId';
 
-    const eventsResponse = await fetchElk('search', 'events', {
-      _source: idField,
-      size: 10000,
-      query: {
-        bool: {
-          must: eventPositive,
-          must_not: eventNegative
+    const eventsResponse = await fetchElk(
+      'search',
+      'events',
+      {
+        _source: idField,
+        size: 10000,
+        query: {
+          bool: {
+            must: eventPositive,
+            must_not: eventNegative
+          }
         }
-      }
-    });
+      },
+      '',
+      { hits: { hits: [] } }
+    );
 
     idsByEvents = eventsResponse.hits.hits
       .map(hit => hit._source[idField])
