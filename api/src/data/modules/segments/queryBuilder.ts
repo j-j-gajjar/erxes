@@ -132,7 +132,7 @@ export const fetchBySegments = async (
       {
         query: {
           bool: {
-            must: propertyNegative,
+            must: propertyPositive,
             must_not: propertyNegative
           }
         },
@@ -144,6 +144,7 @@ export const fetchBySegments = async (
     );
 
     const items = itemsResponse.hits.hits;
+
     const itemIds = items.map(i => i._id);
 
     const customerIds = await Conformities.filterConformity({
